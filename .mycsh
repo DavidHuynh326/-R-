@@ -1,0 +1,67 @@
+#!/bin/csh -f                   
+set autolist
+#set mouse=a
+
+set black = "%{\033[0;30m%}"
+set orange =  "%{\033[1;31m%}"
+set green = "%{\033[1;32m%}"
+set yellow = "%{\033[1;33m%}"
+set blue = "%{\033[0;34m%}"
+set magenta = "%{\033[1;35m%}"
+set cyan = "%{\033[0;36m%}"
+set white = "%{\033[1;37m%}"
+set end = "%{\033[0m%}"
+
+set prompt=" \n ${blue} tanhuynh_vcf${blue}@%m  %/ \n\t${orange}[ %d-%D/%W-%P ] ${cyan} ---> ${cyan} "
+
+#alias cd 'chdir \!*; ll -l --color=auto'
+#alias cds 'chdir \!*; ll -lt --color=auto'
+
+alias n3e 'cd /design01/kairosen9vcf/FABBIZ/T03/users/tanhuynh_vf/N3/'
+alias n3a 'cd /design05/kairosen10vcf/FABBIZ/T03G/users/tanhuynh_vf/N3A/'
+alias t12ffcp 'cd /design05/kairosen10vcf/FABBIZ/T12FFCplus/users/tan_vf'
+alias n5 'cd /design01/kairosen9vcf/FABBIZ/T05/users/tanhuynh_vf/N5/'
+alias gf22 'cd /design01/kairosen9vcf/FABBIZ/GF22FDX/users/tanhuynh_vf'
+alias fabb 'cd /design01/kairosen9vcf/FABBIZ/'
+alias master_n3 'cd /design01/kairosen9vcf/FABBIZ/T03/Library/LSC/MASTER_DATA'
+alias master_n3a 'cd /design05/kairosen10vcf/FABBIZ/T03G/Library'
+alias pdf 'okular'
+alias doc 'okular /eda01/Foundry3/TSMC/N3E/Rules/DesignRule/LOGICTN03CLDR014_0_9_1.pdf'
+alias rule 'cd /eda01/Foundry3/TSMC/N3E/Rules/Calibre'
+alias lr 'll -lrt'
+alias z 'cd ..'
+alias zz 'cd ../..'
+alias zzz 'cd ../../..'
+
+#alias ll 'll --color=always'
+#alias ll 'ls -lrt --color=always'
+alias ll 'ls -lr --color=always'
+#alias cd 'chdir \!*; set prompt = "\n`whoami`: `pwd`\/\n >> ";ll'
+alias cd 'chdir \!*;ll'
+
+alias v 'vi'
+alias g 'gedit'
+alias pas '/svhome/VCF_RVC_OffSite/lpvf05_vf/script/pastelink.csh'
+alias mem '/svhome/VCF_RVC_OffSite/lpvf05_vf/script/disk_top_rp.csh'
+alias sv '/svhome/VCF_RVC_OffSite/lpvf05_vf/script/Bhosts'
+alias mjobs '/svhome/VCF_RVC_OffSite/lpvf05_vf/script/go_chk_jobs.csh'
+alias parent 'ps -Flye f S --cumulative | grep'
+
+#alias dr 'bs -os RHEL7 -M 4000 -source /common/appl/dotfiles/designreview.CSHRC_20.10 designreview &'
+alias dr 'bs -os RHEL7 -M 4000 -source /common/appl/dotfiles/designreview.CSHRC_22.20.HF3 designreview &'
+alias wv 'bs -os RHEL6 -M 1000 -m HOSTGR_M -source /common/appl/dotfiles/custom-waveview.CSHRC_2020.12.sp1-3 wv &'
+alias cc 'bs -M 8000 -os RHEL7 -source "/common/appl/dotfiles/SigraPwra_Viewer.CSHRC_2021.09-SP2" custom_compiler &'
+#alias qv 'bs -os RHEL7 -M 4000 -m HOSTGR_L -source /common/appl/Env/Cadence/cadence.CSHRC_PVS15.24.000 k2_viewer &'
+
+alias du1 'du -h --max-depth=1'
+alias df1 'df -h'
+
+alias decompressIO 'tar -xvjf'
+alias decompressLP 'tar -xvf'
+alias compressLP 'tar zcvf'
+
+#########GF22########
+alias Calibredrv 'bs -M 8000 -os REDHATE7 -source /eda01/Foundry/TSMC/tools/Calibre/ENV/calibre.CSHRC_v2023.2_37.25q1a calibredrv /eda01/Foundry2/GF/22FDX-PLUS-AutoPro-150/V0.5_0.2/DRC/Calibre/decomp_merge_in_memory.calibredrv'
+
+source /common/appl/dotfiles/quantusQRC_T.CSHRC_22.11-s064
+#source /eda01/Foundry/TSMC/tools/Calibre/ENV/calibre.CSHRC_v2023.2_37.25q1a
