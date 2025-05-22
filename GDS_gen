@@ -1,0 +1,38 @@
+#! /bin/csh -f     
+  
+ rm -f strmout.txt
+ rm -f no_gds
+ rm -f pipo_check
+
+set cell = `cat $1`
+ 
+set env_dir = "/design01/kairosen9vcf/FABBIZ/T03/users/tanhuynh_vf/N3/virtuoso"
+set env_pdk = "N3E_1P15M_1XA1XB1XC1XD1YA1YB4Y2YY2Z_v1d0_2p1a3_v020000.ENV_mod"
+ 
+cd run_dir
+ 
+foreach f ($cell)
+echo "RUN Gen GDS $f"
+if ( -d $f ) then
+  rm -rf $f
+endif
+mkdir $f
+cd $f
+sed -e "s/%%PRIM%%/$f/g" ../../template >! template_mod
+ln -s $env_dir/cds.lib ./
+bs -os "RHEL6 RHEL7" -M 8000 -m HOSTGR_L -source ${env_dir}/$env_pdk strmout -templateFile template_mod
+#bs -os RHEL7 -M 1000 -m HOSTGR_L -source ${env_dir}/$env_pdk strmout -templateFile template_mod
+if (-e $f.gds) then
+ echo '#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#' >> ../../pipo_check
+ echo $f >> ../../pipo_check
+ cat strmOut.log | grep WARNING >> ../../pipo_check
+ cat strmOut.log | grep XSTRM >> ../../pipo_check
+ echo '#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#' >> ../../pipo_check
+else 
+ echo $f >> ../../no_gds
+endif
+#mv  $f.gds ../../
+  cd ..
+echo "Done gen gds $f"
+end
+cd ..
