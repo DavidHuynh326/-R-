@@ -1,0 +1,15 @@
+#!/bin/csh
+
+cd run_dir
+set cell = `cat $1`
+foreach f ($cell)
+	echo "this is $f"
+	cd $f
+	if ( -e lvs.rep) then
+		head -n 45 lvs.rep >> ../lvsResult.txt
+		cd ..
+	else
+		cd ..
+		echo $f >> no_hier
+	endif
+end
