@@ -1,0 +1,21 @@
+procedure(ChangeInsLayout(lib)
+	let((my_lib filter list)
+	my_lib=ddGetObj(lib)
+	filter=setof(x my_lib~>cells member("layout_hier" x~>views~>name))
+	list=filter~>name
+	printf("running....")
+	foreach(cell list
+				openCell=dbOpenCellViewByType(lib cell "layout_hier" "" "a")
+				foreach(instance openCell~>instances
+							oldName=instance~>cellName
+;							rexCompile( "FSLCA7UC0Y")
+							rexCompile( "ZBDULA12")
+							newName=rexReplace(oldName "ZBDULA12" 1)
+							leReplaceAnyInstMaster(instance "TC03APA12ILSC12A1" newName  nil)
+;							leReplaceAnyInstMaster(instance "TC22PFSCA7RC0" nil  nil)
+				);foreach instance
+				dbSave(openCell)
+				dbClose(openCell)
+	);foreach cell
+	);let
+);procedure
