@@ -1,0 +1,16 @@
+#!/bin/csh
+
+set cell = `cat $1`
+foreach f ($cell)
+	echo "this is $f"
+	cd $f
+	if ( -d layout_hier) then
+		rm -rf layout
+		cp -rf layout_hier layout
+		cd ..
+		echo $f >> have_hier
+	else
+		cd ..
+		echo $f >> no_hier
+	endif
+end
