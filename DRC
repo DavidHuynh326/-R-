@@ -1,0 +1,30 @@
+#! /bin/csh -f                                           
+ 
+set cell = `cat $1`
+ 
+#set env = "/eda01/Foundry/TSMC/tools/Calibre/ENV/calibre.CSHRC_v2023.1_25.13"
+set env = "/eda01/Foundry/TSMC/tools/Calibre/ENV/calibre.CSHRC_v2023.2_16.9"
+set rule_dir = "./rule"
+#set rule = "CLN3ELO_15M_1Xa1Xb1Xc1Xd1Ya1Yb4Y2Yy2Z_014.11a.encrypt_REL_ORG"
+set rule = "CLN3ELO_15M_1Xa1Xb1Xc1Xd1Ya1Yb4Y2Yy2Z_014.11b.encrypt_ORG"
+
+foreach f ($cell)
+  if ( -d ${f} ) then
+    rm -rf ${f}
+  endif
+  mkdir ${f}
+  #set gds_file = "../../../GDS/run_dir/$f/$f.gds"
+  set gds_file = "../../../GDS/GDS_wodmy/run_dir/$f/$f.gds"
+  cat $rule_dir/$rule >! ${f}/$rule
+  cd ${f}
+  echo "checking drc $f"
+  sed -i "s#GDSFILENAME#$gds_file#g" $rule
+  sed -i "s#TOPCELLNAME#$f#g" $rule
+####### DRC #######
+  
+  #bs -M 18000 -os "RHEL6 RHEL7" -m HOSTGR_L -source ${env}  calibre -drc -hier -turbo 16 -hyper -64 $rule #file_name_rule
+ # bs -M 8000 -os "RHEL7" -m HOSTGR_L -source ${env}  calibre -drc -hier -turbo 4 -hyper -32 $rule #file_name_rule
+  bs -M 16000 -os "RHEL7" -m HOSTGR_L -source ${env}  calibre -drc -hier $rule #file_name_rule
+  
+  cd ..
+end
