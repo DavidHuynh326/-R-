@@ -1,0 +1,37 @@
+#!/BIN/CSH -f
+set mouse=a
+#set complete = "igncase"
+set nu
+#Clear and list
+source /common/lsftool/RBS/dotfiles/lsf_cshrc_cbs
+setenv LSF_PROJECT RVC 
+#setenv LSF_BUMON 220
+#setenv LSF_SAKUBAN Z220998
+umask 002
+set autolist
+
+alias bj 'bjobs'
+alias bk 'bkill'
+
+alias home 'cd /design01/kairosen9vcf/FABBIZ/T03/users/quynguyen_vf/'
+
+#set prompt = '\n%{\033[1;31m%}quyminhnguyen@%m %{\033[0;36m%}[%T]%{\033[0;10m%} %{\033[0;32m%}%/ \n'
+ 
+alias v 'vi'
+alias l 'll -a --color=auto'
+alias cd  'chdir \!*; set prompt = "\n`whoami`@`hostname`: `pwd`\/\n >> ";l'
+
+alias icc2 'bs -os RHEL7 -m HOSTGR_L  -M 50000 -source /common/appl/dotfiles/iccompiler2.CSHRC_2021.06-sp5-t-20220301 icc2_shell'
+alias qv 'bs -os RHEL7 -M 4000 -m HOSTGR_L -source /common/appl/dotfiles/quickview.CSHRC k2_viewer &'
+alias dr 'bs -os RHEL7 -M 4000 -source /common/appl/dotfiles/designreview.CSHRC_20.10 designreview &'
+alias wv 'bs -os RHEL7 -M 16000 -m HOSTGR_M -source /common/appl/dotfiles/custom-waveview.CSHRC_2023.03.sp2 wv &'
+alias inv 'bs -os RHEL7 -m HOSTGR_L  -M 50000 -source /common/appl/dotfiles/innovus.CSHRC_21.1-ISR2 innovus -invs'
+
+# Add by MinhVu
+alias z 'cd ..'
+alias zz 'cd ../..'
+alias zzz 'cd ../../..'
+alias lr 'll -lrt --color=always'
+alias decompress '/svhome/VCF_RVC_OffSite/lpvf01_vf/Desktop/script/go_de_compress.csh'
+alias compress   '/svhome/VCF_RVC_OffSite/lpvf01_vf/Desktop/script/go_mk_compress.csh'
+alias mjobs      '/svhome/VCF_RVC_OffSite/lpvf01_vf/Desktop/script/go_chk_jobs.csh'
