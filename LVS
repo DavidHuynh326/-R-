@@ -1,0 +1,49 @@
+#!/bin/csh -f
+set cell_list = `cat $1`
+cd "run_dir"
+cd $1
+set lib_name = "$1"
+foreach cell ($cell_list)
+  if ( -d $cell ) then
+    rm -rf $cell
+  endif
+
+  mkdir -p $cell
+  cd $cell
+  echo "Run LVS of $cell ^^"
+  #set gds_file = "../../../../GDS/GDS_dmy/run_dir/$cell/$cell.gds"                 # each cells
+  #set gds_file = "../../../../../GDS_wodmy/run_dir/${cell}/${cell}.gds"   # each cells wo DMY
+  #set gds_file = "../../../../../GDS_wodmy/run_dir/LSC_ULP_DMY/TC22PPP18${1}LSC18A1/TC22PPP18${1}LSC18A1.gds"   # each cells wo DMY
+  set gds_file = "/design01/kairosen9vcf/FABBIZ/T03/users/tanhuynh_vf/N3/02.Scripts/GDS/GDS_wodmy/run_dir/$cell/$cell.gds"   # each cells wo DMY
+  #set gds_file = "../../../../GDS_wodmy/run_dir/${lib_name}/${lib_name}.gds"   #top cell
+  
+  set top_cell_name = "$cell"
+  ##set cdl_file = "../../../run_dir/$cell.cdl"
+  #set cdl_file = "../../../../run_dir/cdl_fix/$cell/$cell.cdl"
+  set cdl_file = "/design01/kairosen9vcf/FABBIZ/T03/users/tanhuynh_vf/N3/02.Scripts/CDL/run_dir/$cell/$cell.cdle"
+  set calibre_source = "/eda01/Foundry/TSMC/tools/Calibre/ENV/calibre.CSHRC_v2023.1_25.13"
+  #set lvs_rule_ref = "../../rule/DFM_LVS_CCI_CALIBRE_N7_1p13M_1X1Xa1Ya5Y2Yy2R_ALRDL.1.2a_mod"
+  set lvs_rule_ref = "../../../rule/DFM_LVS_CCI_CALIBRE_N3E_1p15M_1Xa1Xb1Xc1Xd1Ya1Yb4Y2Yy2Z_ALRDL.1.1a_mod"
+
+  #sed -e "s#lvs_top.gds#${gds_file}#" ${lvs_rule_ref} | \
+  #sed -e "s#lvs_top.cdl#${cdl_file}#" | \
+  #sed -e "s#lvs_top#${top_cell_name}#" > rule_mode
+#  cat ../../source_rule >! source_rule
+  #sed -e "s#lvs_top.gds#${gds_file}#" ${lvs_rule_ref} | sed -e "s#lvs_top#${top_cell_name}#" > rule_mode
+  sed -e "s#lvs_top.gds#${gds_file}#" ${lvs_rule_ref} | sed -e "s#lvs_top.cdl#${cdl_file}#" | sed -e "s#lvs_top#${top_cell_name}#" > rule_mode
+  ###########################################################################################################################
+  
+  #bs -os RHEL5 -M 2000 -source ${calibre_source} calibre -lvs -hier -turbo 16 -hyper -64 rule_mode |& tee lvs.log
+  bs -os RHEL7 -M 4000 -m HOSTGR_M -source ${calibre_source} calibre -lvs -hier -64 rule_mode
+  #bs -os RHEL6 -M 3000 -source ${calibre_source} calibre -lvs -hier -64 rule_mode
+
+  if (-e calibre_erc.sum) then
+	  echo $cell >> ../../../done_lvs    ### append
+	 #echo $cell > ../../done_lvs     ### overwrite 
+  else 
+	  echo $cell >> ../../../no_lvs    ### append
+	#echo $cell > ../../no_lvs     ### overwrite
+  endif
+  cd -
+end
+echo "Finish run check lvs of cell $cell ^^"
