@@ -1,0 +1,186 @@
+;;; START USER DEFINE ;;;
+
+libName  = "GC22AFSBA2WA0"; Set libName
+cellList = "/design01/kairosen9vcf/FABBIZ/GF22FDX/users/tanhuynh_vf/work_virtuoso/GF_22FDX_PSW/lef/FLAT_CELL/cell_list_full"  ; Cell name list file
+
+;;; END USER DEFINE ;;;
+
+procedure(go_flat()
+    cells = readList(cellList)
+    foreach(cell cells
+        ;; Create layout for release
+        printf("[Create layout view for Release]\n")
+        RVC_CopyView(libName cell "layout_hier" libName cell "layout")
+        RVC_Flat(libName cell "layout" 31 t) 
+;        RVC_Merge(libName cell "layout" list(list("M1", "drawing") list("M2", "drawing")) t)
+        RVC_Merge(libName cell "layout" list(list("M1", "drawing")) t)
+        RVC_Merge(libName cell "layout" list( list("M2", "drawing")))
+        RVC_Merge(libName cell "layout" list(list("OUTLINE", "drawing") 
+            list("C1", "drawing") list("C2", "drawing") list("C3", "drawing")
+            list("PC", "drawing") list("RX", "drawing") list("BA", "drawing") list("BB", "drawing")
+            ))
+        RVC_DeleteLayer(libName cell "layout" list(list("M1", "pin") 
+            list("M2", "pin")
+            list("y0", "drawing")
+            ))
+        ;; Create layout for lef
+;        printf("[Create layout view for LEF]\n")
+;        libName_lef = strcat(libName "_LEF") 
+;        RVC_CopyView(libName cell "layout" libName_lef cell "layout")
+;        RVC_DrawOBS(libName_lef cell "layout")
+;        ;; Create layout for LPE
+;        printf("[Create layout view for LPE]\n")
+;        libName_lpe = strcat(libName "_LPE")
+;        RVC_CopyView(libName cell "layout_hier" libName_lpe cell "layout")
+;        RVC_Flat(libName_lpe cell "layout" 31 nil)
+    )
+)
+
+procedure(RVC_CopyView(old_libName old_cell old_view 
+                        new_libName new_cell new_view)
+    let((cv_hier cv inst)
+        cv_hier = dbOpenCellViewByType(old_libName old_cell old_view  "maskLayout" "r")
+        cv = dbOpenCellViewByType(new_libName new_cell new_view  "maskLayout" "w")
+        dbCreateInst(cv cv_hier nil list(0 0) "R0" 1)
+        foreach(inst cv~>instances
+            leFlattenInst(inst 1 t )
+        )
+        dbClose(cv_hier)
+        dbSave(cv)
+        dbPurge(cv)
+    )
+)
+
+procedure(RVC_Flat(libName cell view flat_level flat_pcell)
+    let((cv labelTable shape grp inst)
+        cv = dbOpenCellViewByType(libName cell view  "maskLayout" "a") 
+        labelTable=makeTable('labelTable nil)
+        foreach(shape cv~>shapes
+            when(shape~>objType=="label"
+                labelTable[shape]=t
+            )
+        )
+        foreach(grp cv~>figGroups dbDeleteObject(grp)) 
+        foreach(inst cv~>instances
+           if(inst~>objType == "mosaicInst"
+                 then  leFlattenInst(inst~>mosaic flat_level flat_pcell )
+                 else  leFlattenInst(inst flat_level flat_pcell )
+           )
+        )
+        foreach(inst cv~>vias
+            leFlattenInst(inst flat_level flat_pcell )
+        )
+        foreach(shape cv~>shapes
+            when(shape~>objType=="label" && !labelTable[shape]
+                dbDeleteObject(shape)
+            )
+        )
+        foreach(shape cv~>shapes
+            when(shape~>objType=="label"
+                labelTable[shape]=t
+            )
+        )
+        labelTable=nil 
+        dbSave(cv)
+        dbPurge(cv)
+    )
+)
+
+procedure(RVC_LockColor(libName cell view)
+    let((cv)
+        cv = dbOpenCellViewByType(libName cell view  "maskLayout" "a")
+        mptReColor(cv)
+        mptLockAll(cv)
+        dbSave(cv)
+        dbPurge(cv)
+    )
+)
+
+procedure(RVC_Merge(libName cell view listlayer @optional (Lock nil))
+    let((cv origShapes orignLabel shape lp obj)
+        cv = dbOpenCellViewByType(libName cell view  "maskLayout" "a")
+        layerTable=makeTable('labelTable nil)
+        xyTable=makeTable('labelTable nil)
+        labelTable=makeTable('labelTable nil)
+        justifyTable=makeTable('labelTable nil)
+        orientTable=makeTable('labelTable nil)
+        fontTable=makeTable('labelTable nil)
+        heightTable=makeTable('labelTable nil)
+        foreach(shape cv~>shapes
+            when(shape~>objType=="label"
+                layerTable[shape]=list(shape~>layerName shape~>purpose)
+                xyTable[shape]=shape~>xy
+                labelTable[shape]=strcat(shape~>theLabel)
+                justifyTable[shape]=shape~>justify
+                orientTable[shape]=shape~>orient
+                fontTable[shape]=shape~>font
+                heightTable[shape]=shape~>height
+                dbDeleteObject(shape)
+            )
+        )
+        foreach(layer listlayer
+            origShapes = car(setof(lp cv~>lpps lp~>layerName==car(layer)&&lp~>purpose==cadr(layer)))~>shapes
+            dbLayerOr(cv layer origShapes)
+            if(Lock then
+                mptReColor(cv list(car(layer)))
+                mptLockAll(cv)
+            )
+            foreach(shape origShapes
+                dbDeleteObject(shape)
+            )
+        )
+        foreach(shape labelTable
+                dbCreateLabel(cv layerTable[shape] xyTable[shape] labelTable[shape]
+                                justifyTable[shape] orientTable[shape] fontTable[shape] heightTable[shape])
+        )
+        layerTable=nil
+        xyTable=nil
+        labelTable=nil
+        justifyTable=nil
+        orientTable=nil
+        fontTable=nil
+        heightTable=nil
+        dbSave(cv)
+        dbPurge(cv)
+    )
+)
+
+procedure(RVC_DeleteLayer(libName cell view listlayer)
+    let((cv lp shape)
+        cv = dbOpenCellViewByType(libName cell view  "maskLayout" "a")
+        foreach(layer listlayer
+            foreach(shape car(setof(lp cv~>lpps lp~>layerName==car(layer)&&lp~>purpose==cadr(layer)))~>shapes
+                dbDeleteObject(shape)
+            ) 
+        )
+        dbSave(cv)
+        dbPurge(cv)
+    )
+)
+
+procedure(RVC_DrawOBS(libName cell view)
+    let((cv)
+        cv = dbOpenCellViewByType(libName cell view  "maskLayout" "a")
+        dbCreateRect(cv list("M1","boundary") list(list(0 0) list(20 20)))
+        dbCreateRect(cv list("M2","boundary") list(list(0 0) list(20 20)))
+        dbCreateRect(cv list("C1","boundary") list(list(0.55 0) list(20 20)))
+        dbCreateRect(cv list("C2","boundary") list(list(0.55 0) list(20 20)))
+        dbSave(cv)
+        dbPurge(cv)
+    )
+)
+
+procedure(readList(fileName)
+    prog((inport cell cells)
+        inport = infile(fileName)
+        unless(inport
+            printf("*EEROR* Cannot open file %s.\n" fileName)
+            return("error")
+        )
+        while(fscanf(inport "%s" cell)
+            cells = append1(cells cell)
+        )
+        close(inport)
+        return(cells)
+    )
+)
