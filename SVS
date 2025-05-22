@@ -1,0 +1,32 @@
+#! /bin/csh -f                                                                                                                                                    
+
+set calibre_source = "/eda01/Foundry/TSMC/tools/Calibre/ENV/calibre.CSHRC_v2022.2_24.16"
+
+set list1 = "v1.list"
+set list2 = "v2.list"
+
+set line = `cat $list1 | wc -l `
+set i = 1
+
+while ($i <= "$line" )
+  set b1 = `cat $list1 | head -"$i" | tail -1 | awk '{print $1}'`
+  set b2 = `cat $list2 | head -"$i" | tail -1 | awk '{print $1}'`
+  echo "checking SVS:"
+  echo "    $b1 $b2"
+  if ( -d $b1 ) then
+    rm -rf $b1
+  endif
+  mkdir -p ${b1}_${b2}
+  cp hier.txt ${b1}_${b2}
+  ###cat source_rule > ${b1}_${b2}/source_rule
+  #cat source_rule_1 > ${b1}_${b2}/source_rule_1
+  #sed -e "s/cell_name2/$b2/g" source_rule > ${b1}_${b2}/source_rule
+  #sed -e "s/cell_name1/$b1/g" -e "s/cell_name2/$b2/g" rule/DFM_LVS_CCI_CALIBRE_N7_1p13M_1X1Xa1Ya5Y2Yy2R_ALRDL.1.2a_mod >! ${b1}_${b2}/lvs_rule
+  sed -e "s#cell_name1#$b1#g" -e "s#cell_name2#$b2#g" rule/DFM_LVS_CCI_CALIBRE_N3E_1p17m_ALRDL.1.0a_mod >! ${b1}_${b2}/lvs_rule
+  #sed -e "s/cell_name1/$b1/g" -e "s/cell_name2/$b2/g" rule/DFM_LVS_CCI_CALIBRE_N7_1p13M_1X1Xa1Ya5Y2Yy2R_ALRDL.1.2a_mod | \
+  #sed -e "s/lvs_top.gds/..\/input\/$b1.cdl/g" -e "s/lvs_top.cdl/..\/..\/..\/$b2\/$b2.cdl/g" >! ${b1}_${b2}/lvs_rule
+  cd ${b1}_${b2}
+  bs -M 4000 -os REDHATE7 -m HOSTGR_M -source $calibre_source calibre -lvs -hier lvs_rule | tee -i lvs.log
+  cd ..
+  @ i = $i + 1
+end
