@@ -1,0 +1,93 @@
+/*
+
+Group           Custom IC, Cadence Design Systems
+Language        SKILL
+Revision No.    1.0
+Date Created    20th Nov 2006
+Last Modified   29th July 2021
+Tested in       IC20.1-ISR19
+Lint score      100/100
+COS article    11288840
+Description     This program will auto-generate symbols from a sch library
+
+********************************************************************
+* DISCLAIMER: The following code is provided for Cadence customers *
+* to use at their own risk. The code may require modification to   *
+* satisfy the requirements of any user. The code and any           *
+* modifications to the code may not be compatible with current or  *
+* future versions of Cadence products.                             *
+* THE CODE IS PROVIDED "AS IS" AND WITH NO WARRANTIES, INCLUDING   *
+* WITHOUT LIMITATION ANY EXPRESS WARRANTIES OR IMPLIED WARRANTIES  *
+* OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR USE.              *
+********************************************************************
+
+Save this program as "CCSautoCreateSymbol.il" in the working directory and execute if as follows in CIW:
+
+load("./CCSautoCreateSymbol.il")
+CCSautoCreateSymbol("myLib" t)
+
+Use the following cmd to avoid overwriting existing symbols:
+CCSautoCreateSymbol("myLib" nil)
+
+Use the following cmd for schematics with global pins:
+CCScreateSymbolWithGlobalPin("myLib" "myCell")
+*/
+
+
+procedure( CCSautoCreateSymbol(sourceLib reCreate)
+   let((libId targetLib cellList sourceView targetView funct1 funct2)
+      libId = ddGetObj(sourceLib)
+      targetLib = sourceLib
+      cellList = libId~>cells
+      sourceView = "schematic"
+      targetView = "symbol"
+      funct1 = "schSchemToPinList"
+      funct2 = "schPinListToSymbol"
+
+      foreach(cell cellList
+         if(member(sourceView cell~>views~>name)  then
+            if( reCreate || !member("symbol" cell~>views~>name)   then
+               hiRegTimer("hiDBoxUser(schReplaceOrModifyDialog nil 1)" 5)  
+               hiRegTimer("hiDBoxOK(cvToCvCreateCDF)" 10)
+               schViewToView(sourceLib cell~>name targetLib cell~>name sourceView targetView funct1 funct2)
+            ) ;if
+         ) ;if
+      );foreach
+      ddReleaseObj(libId)
+      printf("\nJob Done!\n")
+   ) ;let
+) ;procedure
+
+
+procedure( CCScreateSymbolWithGlobalPin(lib cell @optional (view "schematic"))
+   let( (cv globalNetNames pinList outPort)
+      cv=dbOpenCellViewByType(lib cell view "schematic")
+
+      ;; Get the pin list from schematic
+      pinList=schSchemToPinList(lib cell cv~>viewName)
+
+      ;; Find out global net names i.e. ending with ! but not in terminal list
+      globalNetNames=setof(x cv~>nets~>name pcreMatchp("!$" x) && !member(substring(x 1 strlen(x)-1) cv~>terminals~>name))
+
+      ;; If global nets are there then open a file and print pin name and direction in it
+      when(globalNetNames
+         outPort=outfile(strcat("./" lib "_" cell "_gblpins.txt"))
+         ;; Populate pin list with the global net names
+         foreach(netName globalNetNames
+            pinList->ports=cons(list(nil 'name substring(netName 1 strlen(netName)-1) 'direction "inputOutput") pinList->ports)
+            fprintf(outPort "Pin:%s, Direction: inputOutput\n"  substring(netName 1 strlen(netName)-1))
+         ) ;foreach
+         close(outPort)
+      ) ;when
+
+      ; If symbol need to be created with global pins like VDD! ( with ! ) then uncomment below line.
+      ; tsgFilterGlobalNames=nil
+
+      schPinListToSymbol(lib cell "symbol_allpins" pinList)
+      cv=dbOpenCellViewByType(lib cell "symbol_allpins")
+      dbReopen(cv "a")
+      schVIC(cv)
+      dbSave(cv)
+      dbClose(cv)
+   ) ;let
+) ;procedure
